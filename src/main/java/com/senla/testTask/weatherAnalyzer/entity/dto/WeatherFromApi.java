@@ -1,4 +1,4 @@
-package com.senla.testTask.weatherAnalyzer.dto;
+package com.senla.testTask.weatherAnalyzer.entity.dto;
 
 import com.google.gson.annotations.SerializedName;
 

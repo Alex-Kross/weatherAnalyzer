@@ -1,9 +1,10 @@
-package com.senla.testTask.weatherAnalyzer.mapper;
+package com.senla.testTask.weatherAnalyzer.entity.mapper.impl;
 
-import com.senla.testTask.weatherAnalyzer.dto.WeatherFromApi;
+import com.senla.testTask.weatherAnalyzer.entity.dto.WeatherFromApi;
 import com.senla.testTask.weatherAnalyzer.entity.Weather;
+import com.senla.testTask.weatherAnalyzer.entity.mapper.WeatherMapper;
 
-public class WeatherMapper {
+public class WeatherMapperImpl implements WeatherMapper {
 
     public Weather toWeather(WeatherFromApi weather){
         return new Weather(

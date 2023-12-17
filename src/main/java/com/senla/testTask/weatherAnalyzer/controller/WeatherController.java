@@ -1,7 +1,8 @@
 package com.senla.testTask.weatherAnalyzer.controller;
 
-import com.senla.testTask.weatherAnalyzer.server.WeatherServer;
-import org.springframework.web.bind.annotation.GetMapping;
+import com.senla.testTask.weatherAnalyzer.service.WeatherServer;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
@@ -21,8 +22,16 @@ public class WeatherController {
         this.weatherServer = weatherServer;
     }
 
-    // save information in db about weather right now from api "https://weatherapi-com.p.rapidapi.com"
-    @GetMapping("/weather")
+    // I need handle exception that I throws and find best practice for integrate api
+    // occasion: api not work, i get nothing
+    /***
+     * Here we connect external weather api and save information about it in db
+     * External api here "https://rapidapi.com/weatherapi/api/weatherapi-com"
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @Scheduled(fixedDelayString = "${interval}")
+    @Async
     public void saveWeather() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://weatherapi-com.p.rapidapi.com/current.json?q=Minsk"))
