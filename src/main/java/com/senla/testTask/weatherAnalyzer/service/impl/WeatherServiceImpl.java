@@ -6,21 +6,15 @@ import com.senla.testTask.weatherAnalyzer.entity.dto.WeatherFromApi;
 import com.senla.testTask.weatherAnalyzer.entity.Weather;
 import com.senla.testTask.weatherAnalyzer.entity.dto.WeatherResponse;
 import com.senla.testTask.weatherAnalyzer.entity.mapper.impl.WeatherMapperImpl;
+import com.senla.testTask.weatherAnalyzer.exception.WeatherRepoEmptyException;
 import com.senla.testTask.weatherAnalyzer.repository.WeatherRepository;
 import com.senla.testTask.weatherAnalyzer.service.WeatherService;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-
-import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
 
 @Service
 public class WeatherServiceImpl implements WeatherService {
@@ -61,7 +55,10 @@ public class WeatherServiceImpl implements WeatherService {
     @Override
     public WeatherResponse getCurrentWeather() {
         List<Weather> all = weatherRepository.findAll();
-        Weather weather =all.get(all.size() - 1);
+        if (all.isEmpty()) {
+            throw new WeatherRepoEmptyException("Not found weather info");
+        }
+        Weather weather = all.get(all.size() - 1);
         LOGGER.info("Last weather update found");
 
         WeatherResponse response = new WeatherMapperImpl().toResponse(weather);
@@ -69,7 +66,13 @@ public class WeatherServiceImpl implements WeatherService {
         return response;
     }
 
-    //incorrect date format. right format here: dd-mm-yy.
+    /**
+     * This method calculate average temperature from "dateFrom" to "dateTo"
+     *
+     * @param dateFrom is date from client looking for average temperature
+     * @param dateTo is date to client looking for average temperature
+     * @return average temperature in range date
+     */
     @Override
     public Map<String, Integer> getAverageTemp(String dateFrom, String dateTo) {
         if (dateFrom == null && dateTo != null
@@ -90,8 +93,17 @@ public class WeatherServiceImpl implements WeatherService {
         return avgTemp;
     }
 
+    /***
+     * Method calculate average temperature today.
+     * It performs if client doesn't write request parameters
+     *
+     * @return value average temperature
+     */
     private int getAverageTempToday(){
         List<Weather> weatherList =  weatherRepository.findAll();
+        if (weatherList.isEmpty()) {
+            throw new WeatherRepoEmptyException("Not found weather info");
+        }
         float sumTemperature = 0;
         for (Weather weather: weatherList) {
             sumTemperature += weather.getTemperature();
@@ -103,9 +115,20 @@ public class WeatherServiceImpl implements WeatherService {
         return (int) ceil;
     }
 
+    /***
+     * This method calculate average temperature from "dateFrom" to "dateTo".
+     * Firstly we check format request parameters and then find average temperature.
+     *
+     * @param dateFrom is date from client looking for average temperature
+     * @param dateTo is date to client looking for average temperature
+     * @return average temperature in range date
+     */
     private int getAverageTempRange(String dateFrom, String dateTo){
         if (isRightDateFormat(dateFrom, dateTo)) {
-            List<Weather> weatherList =  weatherRepository.findAll();
+            List<Weather> weatherList = weatherRepository.findAll();
+            if (weatherList.isEmpty()) {
+                throw new WeatherRepoEmptyException("Not found weather info");
+            }
             //if date to is future date
             String lastRecordInDB = weatherList.get(weatherList.size() - 1).getDateTime().split("\s")[0];
             if (dateTo.compareTo(lastRecordInDB) > 0) {
@@ -114,22 +137,30 @@ public class WeatherServiceImpl implements WeatherService {
 
             float sumTemperature = 0;
             int numberWeatherInRange = 0;
-            for (Weather weather: weatherList) {
+            for (Weather weather : weatherList) {
                 String dateWeather = weather.getDateTime().split("\s")[0];
-                if (dateFrom.compareTo(dateWeather) >= 0
+                if (dateFrom.compareTo(dateWeather) <= 0
                         && dateTo.compareTo(dateWeather) <= 0) {
                     sumTemperature += weather.getTemperature();
                     numberWeatherInRange++;
                 }
             }
+            // not found
             if (numberWeatherInRange == 0) {
-                new RuntimeException("noup value");
+                return 0;
             }
             return (int) Math.ceil(sumTemperature / numberWeatherInRange);
+        } else {
+            throw new RuntimeException("Incorrect input parameters");
         }
-        return 0;
     }
 
+    /***
+     * Check request parameters right format. Right format: YY-MM-DD
+     * @param dateFrom is date from client looking for average temperature
+     * @param dateTo is date to client looking for average temperature
+     * @return value that say as request parameters are right format
+     */
     private boolean isRightDateFormat(String dateFrom, String dateTo){
         String[] splitDateFrom = dateFrom.split("-");
         String[] splitDateTo = dateTo.split("-");
@@ -141,9 +172,9 @@ public class WeatherServiceImpl implements WeatherService {
             return false;
         }
         //if client input date in wrong sequence
-        if(splitDateTo[0].length() != 4 || splitDateTo[1].length() != 2
-                || splitDateTo[2].length() != 2 || splitDateFrom[0].length() != 4
-                || splitDateFrom[1].length() != 2 || splitDateFrom[2].length() != 2){
+        if(splitDateTo[0].length() != 2 || splitDateFrom[0].length() != 2
+                || splitDateTo[1].length() != 2 || splitDateFrom[1].length() != 2
+                || splitDateTo[2].length() != 4 || splitDateFrom[2].length() != 4){
             return false;
         }
         //if client not exist day or month

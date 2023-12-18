@@ -2,7 +2,6 @@ package com.senla.testTask.weatherAnalyzer.controller;
 
 import com.senla.testTask.weatherAnalyzer.entity.dto.WeatherResponse;
 import com.senla.testTask.weatherAnalyzer.service.WeatherService;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -68,7 +67,6 @@ public class WeatherController {
     @GetMapping("/average-temp")
     public Map<String, Integer> getAvgTemperatureToday(@RequestParam(required = false, name = "from") String dateFrom,
                                                                   @RequestParam(required = false, name = "to") String dateTo){
-
         return weatherService.getAverageTemp(dateFrom, dateTo);
     }
 }

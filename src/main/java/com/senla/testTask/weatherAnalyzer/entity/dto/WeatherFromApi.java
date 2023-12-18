@@ -26,10 +26,10 @@ public class WeatherFromApi {
         @SerializedName("country")
         private String country;
         @SerializedName("localtime")
-        private String localDateTime;
+        private String dateTime;
 
-        public String getLocalDateTime() {
-            return localDateTime;
+        public String getDateTime() {
+            return dateTime;
         }
 
         public String getCity() {
