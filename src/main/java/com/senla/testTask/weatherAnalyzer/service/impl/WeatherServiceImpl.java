@@ -7,19 +7,27 @@ import com.senla.testTask.weatherAnalyzer.entity.Weather;
 import com.senla.testTask.weatherAnalyzer.entity.dto.WeatherResponse;
 import com.senla.testTask.weatherAnalyzer.entity.mapper.impl.WeatherMapperImpl;
 import com.senla.testTask.weatherAnalyzer.repository.WeatherRepository;
-import com.senla.testTask.weatherAnalyzer.service.WeatherServer;
+import com.senla.testTask.weatherAnalyzer.service.WeatherService;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
+import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
+
 @Service
-public class WeatherServerImpl implements WeatherServer {
+public class WeatherServiceImpl implements WeatherService {
     private final WeatherRepository weatherRepository;
     private static final Logger LOGGER =
             Logger.getLogger(WeatherController.class.getName());
 
-    public WeatherServerImpl(WeatherRepository weatherRepository) {
+    public WeatherServiceImpl(WeatherRepository weatherRepository) {
         this.weatherRepository = weatherRepository;
     }
 
@@ -57,5 +65,39 @@ public class WeatherServerImpl implements WeatherServer {
         WeatherResponse response = new WeatherMapperImpl().toResponse(weather);
         LOGGER.info("The found weather : \n" + weather);
         return response;
+    }
+    private boolean isRightDateFormat(String dateFrom, String dateTo){
+        String[] splitDateFrom = dateFrom.split("-");
+        String[] splitDateTo = dateTo.split("-");
+        //if client input date without day, month or year
+        if (splitDateTo.length != 3
+                || splitDateFrom.length != 3) {
+            return false;
+        }
+
+
+    }
+    //incorrect date format. right format here: dd-mm-yy.
+    @Override
+    public Map<String, Float> getAverageTemp(String dateFrom, String dateTo) {
+        //check format parameters
+
+        if (isRightDateFormat(dateFrom, dateTo)) {
+
+        }
+//        LocalDateTime.
+        List<Weather> all =  weatherRepository.findAll();
+        String lastDate = all.getLast().getDateTime().split("\s")[0];
+        if (lastDate.compareTo(dateTo) < 0) {
+            throw new RuntimeException("Your dateTo doesn't exist ");
+        }
+        List<String> date = new LinkedList<>();
+
+        for (Weather weather :all) {
+            date.add(weather.getDateTime().split("\s")[0]);
+        }
+
+
+        return new HashMap<>();
     }
 }

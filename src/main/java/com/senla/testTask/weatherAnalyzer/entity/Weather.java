@@ -2,6 +2,7 @@ package com.senla.testTask.weatherAnalyzer.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 import java.util.Objects;
@@ -10,7 +11,9 @@ import java.util.Objects;
 @Entity
 public class Weather {
     @Id
-    @GeneratedValue
+    @GeneratedValue(
+            strategy = GenerationType.IDENTITY
+    )
     private Long id;
     private float temperature;
     private float windSpeed;
@@ -121,7 +124,7 @@ public class Weather {
                 ", humidity2=" + humidity +
                 ", condition2='" + weatherCondition + '\'' +
                 ", city='" + city + '\'' +
-                ", localDateTime2='" + dateTime + '\'' +
+                ", dateTime='" + dateTime + '\'' +
                 '}';
     }
 }
