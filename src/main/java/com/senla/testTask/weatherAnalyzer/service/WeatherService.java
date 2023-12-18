@@ -8,5 +8,5 @@ public interface WeatherService {
     void saveWeather(String apiResponse);
 
     WeatherResponse getCurrentWeather();
-    Map<String, Float> getAverageTemp(String dateFrom, String dateTo);
+    Map<String, Integer> getAverageTemp(String dateFrom, String dateTo);
 }
