@@ -6,7 +6,8 @@ import com.senla.testTask.weatherAnalyzer.entity.dto.WeatherFromApi;
 import com.senla.testTask.weatherAnalyzer.entity.Weather;
 import com.senla.testTask.weatherAnalyzer.entity.dto.WeatherResponse;
 import com.senla.testTask.weatherAnalyzer.entity.mapper.impl.WeatherMapperImpl;
-import com.senla.testTask.weatherAnalyzer.exception.WeatherRepoEmptyException;
+import com.senla.testTask.weatherAnalyzer.exception.RequestWrongException;
+import com.senla.testTask.weatherAnalyzer.exception.WeatherNotFoundException;
 import com.senla.testTask.weatherAnalyzer.repository.WeatherRepository;
 import com.senla.testTask.weatherAnalyzer.service.WeatherService;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,7 @@ public class WeatherServiceImpl implements WeatherService {
         LOGGER.info("Data of weather saved. Data : \n" + weather);
     }
 
-    //occasions: weather not found in list, not convert
+    //occasions: weather not convert
     /***
      * This method return the last weather info from db
      * Before return we found it in db we mapped object "Weather" to client
@@ -56,7 +57,7 @@ public class WeatherServiceImpl implements WeatherService {
     public WeatherResponse getCurrentWeather() {
         List<Weather> all = weatherRepository.findAll();
         if (all.isEmpty()) {
-            throw new WeatherRepoEmptyException("Not found weather info");
+            throw new WeatherNotFoundException("Not found weather info!");
         }
         Weather weather = all.get(all.size() - 1);
         LOGGER.info("Last weather update found");
@@ -67,27 +68,30 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     /**
-     * This method calculate average temperature from "dateFrom" to "dateTo"
+     * This method find average temperature in range that point out in method parameters
+     * These parameters got from request
      *
-     * @param dateFrom is date from client looking for average temperature
-     * @param dateTo is date to client looking for average temperature
+     * @param dateFrom is date start to looking for average temperature
+     * @param dateTo is date finish to client looking for average temperature
      * @return average temperature in range date
      */
     @Override
     public Map<String, Integer> getAverageTemp(String dateFrom, String dateTo) {
+        //check exist both request parameters
         if (dateFrom == null && dateTo != null
-                ||dateFrom != null && dateTo == null) {
-            throw new RuntimeException("input only one parameter");
+                || dateFrom != null && dateTo == null) {
+            throw new RequestWrongException("Input only one request parameter!");
         }
         int averageTemp = 0;
-        Map<String, Integer> avgTemp = new HashMap<>();
+        Map<String, Integer> avgTemp = new HashMap<>();     // create object to response to the client
         avgTemp.put("average_temp", averageTemp);
+
+        //if we don't have range then find average temp. for today
         if (dateFrom == null && dateTo == null){
             averageTemp = getAverageTempToday();
         }
-        //check format parameters
         else {
-            averageTemp = getAverageTempRange(dateFrom, dateTo);
+            averageTemp = getAverageTempInRange(dateFrom, dateTo);
         }
         avgTemp.put("average_temp", averageTemp);
         return avgTemp;
@@ -95,24 +99,22 @@ public class WeatherServiceImpl implements WeatherService {
 
     /***
      * Method calculate average temperature today.
-     * It performs if client doesn't write request parameters
+     * Firstly we get all weather's objects from db and then
+     * find average temperature
      *
      * @return value average temperature
      */
     private int getAverageTempToday(){
         List<Weather> weatherList =  weatherRepository.findAll();
         if (weatherList.isEmpty()) {
-            throw new WeatherRepoEmptyException("Not found weather info");
+            throw new WeatherNotFoundException("Not found weather info!");
         }
+
         float sumTemperature = 0;
         for (Weather weather: weatherList) {
             sumTemperature += weather.getTemperature();
         }
-        if (weatherList.isEmpty()) {
-            throw new RuntimeException("list is empty");
-        }
-        double ceil = Math.ceil(sumTemperature / weatherList.size());
-        return (int) ceil;
+        return (int) Math.ceil(sumTemperature / weatherList.size());
     }
 
     /***
@@ -123,11 +125,11 @@ public class WeatherServiceImpl implements WeatherService {
      * @param dateTo is date to client looking for average temperature
      * @return average temperature in range date
      */
-    private int getAverageTempRange(String dateFrom, String dateTo){
+    private int getAverageTempInRange(String dateFrom, String dateTo){
         if (isRightDateFormat(dateFrom, dateTo)) {
             List<Weather> weatherList = weatherRepository.findAll();
             if (weatherList.isEmpty()) {
-                throw new WeatherRepoEmptyException("Not found weather info");
+                throw new WeatherNotFoundException("Not found weather info!");
             }
             //if date to is future date
             String lastRecordInDB = weatherList.get(weatherList.size() - 1).getDateTime().split("\s")[0];
@@ -156,7 +158,7 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     /***
-     * Check request parameters right format. Right format: YY-MM-DD
+     * Check request parameters right format. Right format: DD-MM-YY
      * @param dateFrom is date from client looking for average temperature
      * @param dateTo is date to client looking for average temperature
      * @return value that say as request parameters are right format

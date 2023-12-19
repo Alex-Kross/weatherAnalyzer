@@ -75,7 +75,12 @@ public class WeatherResponse {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         WeatherResponse that = (WeatherResponse) o;
-        return Float.compare(temperature, that.temperature) == 0 && Float.compare(windSpeed, that.windSpeed) == 0 && Float.compare(pressure, that.pressure) == 0 && humidity == that.humidity && Objects.equals(weatherCondition, that.weatherCondition) && Objects.equals(city, that.city);
+        return Float.compare(temperature, that.temperature) == 0
+                && Float.compare(windSpeed, that.windSpeed) == 0
+                && Float.compare(pressure, that.pressure) == 0
+                && humidity == that.humidity
+                && Objects.equals(weatherCondition, that.weatherCondition)
+                && Objects.equals(city, that.city);
     }
 
     @Override

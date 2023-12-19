@@ -39,9 +39,9 @@ public class WeatherController {
      * @throws IOException
      * @throws InterruptedException
      */
-    @Scheduled(fixedDelayString = "${interval}")
-    @Async
-    public void saveWeather() throws IOException, InterruptedException {
+//    @Scheduled(fixedDelayString = "${interval}")
+//    @Async
+    public void saveWeather() {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://weatherapi-com.p.rapidapi.com/current.json?q=Minsk"))
                 .header("X-RapidAPI-Key", "9fa4cd710bmsh97a622ee278463dp1eb7d9jsnff47781e292d")
@@ -49,7 +49,14 @@ public class WeatherController {
                 .method("GET", HttpRequest.BodyPublishers.noBody())
                 .build();
 
-        String response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString()).body();
+        String response = null;
+        try {
+            response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString()).body();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         LOGGER.info("Data of weather got from api");
         weatherService.saveWeather(response);
     }

@@ -16,7 +16,7 @@ public class WeatherMapperImpl implements WeatherMapper {
      * @return object for client
      */
     @Override
-    public WeatherResponse toResponse(Weather weather) {
+    public WeatherResponse toResponse(Weather weather) throws NullPointerException {
         return new WeatherResponse(
                 weather.getTemperature(),
                 weather.getWindSpeed(),
@@ -34,7 +34,8 @@ public class WeatherMapperImpl implements WeatherMapper {
      * @return entity "Weather"
      */
     @Override
-    public Weather toWeather(WeatherFromApi weatherFromApi){
+    public Weather toWeather(WeatherFromApi weatherFromApi) throws NullPointerException {
+        String dateTime = reverseString(weatherFromApi.getLocation().getDateTime());
         return new Weather(
                         weatherFromApi.getCurrent().getTemperature(),
                         weatherFromApi.getCurrent().getWindSpeed(),
@@ -42,7 +43,7 @@ public class WeatherMapperImpl implements WeatherMapper {
                         weatherFromApi.getCurrent().getHumidity(),
                         weatherFromApi.getCurrent().getCondition().getCondition(),
                         weatherFromApi.getLocation().getCity(),
-                        reverseString(weatherFromApi.getLocation().getDateTime())
+                        dateTime
                 );
     }
 
