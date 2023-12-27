@@ -12,6 +12,10 @@ import com.senla.testTask.weatherAnalyzer.repository.WeatherRepository;
 import com.senla.testTask.weatherAnalyzer.service.WeatherService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +31,7 @@ public class WeatherServiceImpl implements WeatherService {
         this.weatherRepository = weatherRepository;
     }
 
-    //potentiall occasions are db not save, not convert to entity
+    //potential occasions are db not save, not convert to entity
     /***
      * Save state weather in db.
      * Method retrieve data from method parameter to special object via "gson" library,
@@ -55,15 +59,12 @@ public class WeatherServiceImpl implements WeatherService {
      */
     @Override
     public WeatherResponse getCurrentWeather() {
-        List<Weather> all = weatherRepository.findAll();
-        if (all.isEmpty()) {
-            throw new WeatherNotFoundException("Not found weather info!");
+        Weather lastWeather = weatherRepository.getLastWeather();
+        if (lastWeather == null) {
+            throw new WeatherNotFoundException("The Weather not found");
         }
-        Weather weather = all.get(all.size() - 1);
-        LOGGER.info("Last weather update found");
-
-        WeatherResponse response = new WeatherMapperImpl().toResponse(weather);
-        LOGGER.info("The found weather : \n" + weather);
+        WeatherResponse response = new WeatherMapperImpl().toResponse(lastWeather);
+        LOGGER.info("The found weather : \n" + lastWeather);
         return response;
     }
 
@@ -86,7 +87,7 @@ public class WeatherServiceImpl implements WeatherService {
         Map<String, Integer> avgTemp = new HashMap<>();     // create object to response to the client
         avgTemp.put("average_temp", averageTemp);
 
-        //if we don't have range then find average temp. for today
+        //if we don't have range then find average temperature for today
         if (dateFrom == null && dateTo == null){
             averageTemp = getAverageTempToday();
         }
@@ -105,88 +106,45 @@ public class WeatherServiceImpl implements WeatherService {
      * @return value average temperature
      */
     private int getAverageTempToday(){
-        List<Weather> weatherList =  weatherRepository.findAll();
-        if (weatherList.isEmpty()) {
-            throw new WeatherNotFoundException("Not found weather info!");
+        try {
+            return (int) Math.ceil(weatherRepository.getAverageTempToday(LocalDate.now()));
+        } catch (RuntimeException e) {
+            throw new WeatherNotFoundException("The Weather not found");
         }
-
-        float sumTemperature = 0;
-        for (Weather weather: weatherList) {
-            sumTemperature += weather.getTemperature();
-        }
-        return (int) Math.ceil(sumTemperature / weatherList.size());
     }
 
     /***
-     * This method calculate average temperature from "dateFrom" to "dateTo".
+     * This method calculate average temperature from "dateFromString" to "dateToString".
      * Firstly we check format request parameters and then find average temperature.
      *
-     * @param dateFrom is date from client looking for average temperature
-     * @param dateTo is date to client looking for average temperature
+     * @param dateFromString is date from client looking for average temperature
+     * @param dateToString is date to client looking for average temperature
      * @return average temperature in range date
      */
-    private int getAverageTempInRange(String dateFrom, String dateTo){
-        if (isRightDateFormat(dateFrom, dateTo)) {
-            List<Weather> weatherList = weatherRepository.findAll();
-            if (weatherList.isEmpty()) {
-                throw new WeatherNotFoundException("Not found weather info!");
+    private int getAverageTempInRange(String dateFromString, String dateToString){
+        LocalDate dateFrom, dateTo;
+        try {
+            dateFrom = isRightDateFormat(dateFromString);
+            dateTo = isRightDateFormat(dateToString);
+            return (int) Math.ceil(weatherRepository.getAverageTempInRange(
+                    LocalDate.parse(dateFrom.format(DateTimeFormatter.ofPattern("uuuu-M-d"))),
+                    LocalDate.parse(dateTo.format(DateTimeFormatter.ofPattern("uuuu-M-d")))));
+        } catch (DateTimeParseException e) {
+            String message = "";
+            if (e.getCause() == null) {
+                message = "Date need to be only in format DD-MM-YYYY";
+            } else {
+                message = e.getCause().getMessage();
             }
-            //if date to is future date
-            String lastRecordInDB = weatherList.get(weatherList.size() - 1).getDateTime().split("\s")[0];
-            if (dateTo.compareTo(lastRecordInDB) > 0) {
-                throw new RuntimeException("dateTo too much");
-            }
-
-            float sumTemperature = 0;
-            int numberWeatherInRange = 0;
-            for (Weather weather : weatherList) {
-                String dateWeather = weather.getDateTime().split("\s")[0];
-                if (dateFrom.compareTo(dateWeather) <= 0
-                        && dateTo.compareTo(dateWeather) <= 0) {
-                    sumTemperature += weather.getTemperature();
-                    numberWeatherInRange++;
-                }
-            }
-            // not found
-            if (numberWeatherInRange == 0) {
-                return 0;
-            }
-            return (int) Math.ceil(sumTemperature / numberWeatherInRange);
-        } else {
-            throw new RuntimeException("Incorrect input parameters");
+            throw new RequestWrongException(message);
+        } catch (RuntimeException e) {
+            throw new WeatherNotFoundException("The Weather not found");
         }
     }
-
-    /***
-     * Check request parameters right format. Right format: DD-MM-YY
-     * @param dateFrom is date from client looking for average temperature
-     * @param dateTo is date to client looking for average temperature
-     * @return value that say as request parameters are right format
-     */
-    private boolean isRightDateFormat(String dateFrom, String dateTo){
-        String[] splitDateFrom = dateFrom.split("-");
-        String[] splitDateTo = dateTo.split("-");
-
-        //if client input date without day, month or year
-        // and if client input nothing
-        if (splitDateTo.length != 3
-                || splitDateFrom.length != 3) {
-            return false;
-        }
-        //if client input date in wrong sequence
-        if(splitDateTo[0].length() != 2 || splitDateFrom[0].length() != 2
-                || splitDateTo[1].length() != 2 || splitDateFrom[1].length() != 2
-                || splitDateTo[2].length() != 4 || splitDateFrom[2].length() != 4){
-            return false;
-        }
-        //if client not exist day or month
-        if (Integer.parseInt(splitDateTo[1]) < 1 && Integer.parseInt(splitDateTo[1]) > 12
-                || Integer.parseInt(splitDateFrom[1]) < 1 && Integer.parseInt(splitDateFrom[1]) > 12
-                || Integer.parseInt(splitDateTo[2]) < 1 && Integer.parseInt(splitDateTo[2]) > 31
-                || Integer.parseInt(splitDateFrom[2]) < 1 && Integer.parseInt(splitDateFrom[2]) >  31
-        ) {
-            return false;
-        }
-        return true;
+    private LocalDate isRightDateFormat(String date){
+        return LocalDate.parse(date,
+                DateTimeFormatter.ofPattern("d-M-uuuu")
+                        .withResolverStyle(ResolverStyle.STRICT)
+        );
     }
 }

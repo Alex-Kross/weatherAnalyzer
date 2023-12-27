@@ -39,8 +39,8 @@ public class WeatherController {
      * @throws IOException
      * @throws InterruptedException
      */
-//    @Scheduled(fixedDelayString = "${interval}")
-//    @Async
+    @Scheduled(fixedDelayString = "${interval}")
+    @Async
     public void saveWeather() {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://weatherapi-com.p.rapidapi.com/current.json?q=Minsk"))

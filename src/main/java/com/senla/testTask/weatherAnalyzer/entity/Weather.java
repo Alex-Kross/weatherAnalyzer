@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
+import java.time.LocalDate;
 import java.util.Objects;
 
 
@@ -21,20 +22,20 @@ public class Weather {
     private int humidity;
     private String weatherCondition;
     private String city;
-    private String dateTime;
+    private LocalDate localDate;
 
     public Weather() {
     }
 
     public Weather(float temperature, float windSpeed, float pressure,
-                   int humidity, String weatherCondition, String city, String dateTime) {
+                   int humidity, String weatherCondition, String city, LocalDate localDate) {
         this.temperature = temperature;
         this.windSpeed = windSpeed;
         this.pressure = pressure;
         this.humidity = humidity;
         this.weatherCondition = weatherCondition;
         this.city = city;
-        this.dateTime = dateTime;
+        this.localDate = localDate;
     }
 
     public Long getId() {
@@ -93,12 +94,12 @@ public class Weather {
         this.city = city;
     }
 
-    public String getDateTime() {
-        return dateTime;
+    public LocalDate getLocalDate() {
+        return localDate;
     }
 
-    public void setDateTime(String dateTime) {
-        this.dateTime = dateTime;
+    public void setLocalDate(LocalDate localDate) {
+        this.localDate = localDate;
     }
 
     @Override
@@ -106,12 +107,12 @@ public class Weather {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Weather weather = (Weather) o;
-        return Float.compare(temperature, weather.temperature) == 0 && Float.compare(windSpeed, weather.windSpeed) == 0 && Float.compare(pressure, weather.pressure) == 0 && humidity == weather.humidity && Objects.equals(id, weather.id) && Objects.equals(weatherCondition, weather.weatherCondition) && Objects.equals(city, weather.city) && Objects.equals(dateTime, weather.dateTime);
+        return Float.compare(temperature, weather.temperature) == 0 && Float.compare(windSpeed, weather.windSpeed) == 0 && Float.compare(pressure, weather.pressure) == 0 && humidity == weather.humidity && Objects.equals(id, weather.id) && Objects.equals(weatherCondition, weather.weatherCondition) && Objects.equals(city, weather.city) && Objects.equals(localDate, weather.localDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, temperature, windSpeed, pressure, humidity, weatherCondition, city, dateTime);
+        return Objects.hash(id, temperature, windSpeed, pressure, humidity, weatherCondition, city, localDate);
     }
 
     @Override
@@ -124,7 +125,7 @@ public class Weather {
                 ", humidity2=" + humidity +
                 ", condition2='" + weatherCondition + '\'' +
                 ", city='" + city + '\'' +
-                ", dateTime='" + dateTime + '\'' +
+                ", dateTime='" + localDate + '\'' +
                 '}';
     }
 }
