@@ -7,7 +7,7 @@ USE `weather_analyzer` ;
 CREATE TABLE IF NOT EXISTS `weather_analyzer`.`weather` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
   `city` VARCHAR(255) NULL DEFAULT NULL,
-  `date_time` VARCHAR(255) NULL DEFAULT NULL,
+  `local_date` DATE NULL DEFAULT NULL,
   `humidity` INT NOT NULL,
   `pressure` FLOAT NOT NULL,
   `temperature` FLOAT NOT NULL,

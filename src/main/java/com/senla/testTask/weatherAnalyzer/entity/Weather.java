@@ -122,10 +122,10 @@ public class Weather {
                 ", temperature=" + temperature +
                 ", windSpeed=" + windSpeed +
                 ", pressure=" + pressure +
-                ", humidity2=" + humidity +
-                ", condition2='" + weatherCondition + '\'' +
+                ", humidity=" + humidity +
+                ", condition='" + weatherCondition + '\'' +
                 ", city='" + city + '\'' +
-                ", dateTime='" + localDate + '\'' +
+                ", localDate='" + localDate + '\'' +
                 '}';
     }
 }

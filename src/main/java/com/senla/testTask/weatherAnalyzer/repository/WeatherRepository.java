@@ -8,12 +8,12 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 
 public interface WeatherRepository extends JpaRepository<Weather, Long> {
-    @Query("SELECT AVG(temperature) FROM Weather\n" +
-            "WHERE local_date = :date")
+    @Query("SELECT ROUND(AVG(temperature), 0) FROM Weather\n" +
+            "WHERE localDate = :date")
     int getAverageTempToday(@Param("date") LocalDate localDate);
 
-    @Query("SELECT AVG(temperature) FROM Weather\n" +
-            "WHERE local_date BETWEEN :dateFrom AND :dateTo")
+    @Query("SELECT ROUND(AVG(temperature), 0) FROM Weather\n" +
+            "WHERE localDate BETWEEN :dateFrom AND :dateTo")
     int getAverageTempInRange(@Param("dateFrom")LocalDate dateFrom,
                               @Param("dateTo")LocalDate dateTo);
 

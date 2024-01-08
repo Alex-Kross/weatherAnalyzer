@@ -17,7 +17,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -107,7 +106,7 @@ public class WeatherServiceImpl implements WeatherService {
      */
     private int getAverageTempToday(){
         try {
-            return (int) Math.ceil(weatherRepository.getAverageTempToday(LocalDate.now()));
+            return weatherRepository.getAverageTempToday(LocalDate.now());
         } catch (RuntimeException e) {
             throw new WeatherNotFoundException("The Weather not found");
         }
@@ -126,9 +125,9 @@ public class WeatherServiceImpl implements WeatherService {
         try {
             dateFrom = isRightDateFormat(dateFromString);
             dateTo = isRightDateFormat(dateToString);
-            return (int) Math.ceil(weatherRepository.getAverageTempInRange(
+            return weatherRepository.getAverageTempInRange(
                     LocalDate.parse(dateFrom.format(DateTimeFormatter.ofPattern("uuuu-M-d"))),
-                    LocalDate.parse(dateTo.format(DateTimeFormatter.ofPattern("uuuu-M-d")))));
+                    LocalDate.parse(dateTo.format(DateTimeFormatter.ofPattern("uuuu-M-d"))));
         } catch (DateTimeParseException e) {
             String message = "";
             if (e.getCause() == null) {
