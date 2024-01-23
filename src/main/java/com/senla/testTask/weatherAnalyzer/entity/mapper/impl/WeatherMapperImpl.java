@@ -39,8 +39,7 @@ public class WeatherMapperImpl implements WeatherMapper {
     public Weather toWeather(WeatherFromApi weatherFromApi) throws NullPointerException {
         LocalDate localDate = LocalDate.parse(weatherFromApi
                 .getLocation()
-                .getDateTime()
-                .split("\s")[0]);
+                .getDateTime());
         return new Weather(
                         weatherFromApi.getCurrent().getTemperature(),
                         weatherFromApi.getCurrent().getWindSpeed(),

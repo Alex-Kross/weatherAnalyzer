@@ -1,6 +1,5 @@
 package com.senla.testTask.weatherAnalyzer.service.impl;
 
-import com.google.gson.Gson;
 import com.senla.testTask.weatherAnalyzer.controller.WeatherController;
 import com.senla.testTask.weatherAnalyzer.entity.dto.WeatherFromApi;
 import com.senla.testTask.weatherAnalyzer.entity.Weather;
@@ -33,19 +32,18 @@ public class WeatherServiceImpl implements WeatherService {
     //potential occasions are db not save, not convert to entity
     /***
      * Save state weather in db.
-     * Method retrieve data from method parameter to special object via "gson" library,
-     * so then we transfer data from special object to entity and save it in db.
+     * We transfer data from dto to entity and save it in db.
      *
-     * @param apiResponse string contain response api in JSON format
+     * @param weatherFromApi dto object
+     * @return weather saved object in db
      */
     @Override
-    public void saveWeather(String apiResponse) {
-        Gson gson = new Gson();
-        WeatherFromApi weatherFromApi = gson.fromJson(apiResponse, WeatherFromApi.class);
+    public Weather saveWeather(WeatherFromApi weatherFromApi) {
         Weather weather = new WeatherMapperImpl().toWeather(weatherFromApi);
 
-        weatherRepository.save(weather);
-        LOGGER.info("Data of weather saved. Data : \n" + weather);
+        Weather savedWeather = weatherRepository.save(weather);
+        LOGGER.info("Data of weather saved. Data : \n" + savedWeather);
+        return savedWeather;
     }
 
     //occasions: weather not convert

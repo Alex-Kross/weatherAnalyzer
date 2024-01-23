@@ -1,6 +1,8 @@
 package com.senla.testTask.weatherAnalyzer.controller;
 
+import com.senla.testTask.weatherAnalyzer.entity.dto.WeatherFromApi;
 import com.senla.testTask.weatherAnalyzer.exception.ApiConnectException;
+import com.senla.testTask.weatherAnalyzer.service.ApiService;
 import com.senla.testTask.weatherAnalyzer.service.WeatherService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -19,6 +21,7 @@ public class ApiController {
     private static final Logger LOGGER =
             Logger.getLogger(WeatherController.class.getName());
     private final WeatherService weatherService;
+    private final ApiService apiService;
     @Value("${rapidApi.weather.uri}")
     private String uri;
     @Value("${rapidApi.weather.xRapidApiKey}")
@@ -26,8 +29,9 @@ public class ApiController {
     @Value("${rapidApi.weather.xRapidApiHost}")
     private String xRapidApiHost;
 
-    public ApiController(WeatherService weatherService) {
+    public ApiController(WeatherService weatherService, ApiService apiService) {
         this.weatherService = weatherService;
+        this.apiService = apiService;
     }
 
     /***
@@ -57,8 +61,9 @@ public class ApiController {
         } catch (IOException | InterruptedException e) {
             throw new ApiConnectException("disconnect to api");
         }
+        //save weather state in dto object
+        WeatherFromApi weatherFromApi = apiService.getWeatherFromApi(response);
         LOGGER.info("Data of weather got from api");
-        weatherService.saveWeather(response);
+        weatherService.saveWeather(weatherFromApi);
     }
-
 }
